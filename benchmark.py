@@ -42,7 +42,7 @@ transform_test = transforms.Compose([
 ])
 
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=2)
 
 testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
@@ -60,6 +60,7 @@ elif args.arch == "vgg11":
 elif args.arch == "resnet152":
     net = ResNet152()
 elif args.arch == "resnet18":
+    print(args.arch)
     net = ResNet18()
 elif args.arch == "resnet50":
     net = ResNet50()    
@@ -98,35 +99,36 @@ b_train = []
 peak_memory_usage = []
 
 net.train()
-for i in range(args.iters):
-    for batch_idx, (inputs, targets) in enumerate(trainloader):
-        inputs, targets = inputs.to(device), targets.to(device)
-        f_start = torch.cuda.Event(enable_timing=True)
-        f_end = torch.cuda.Event(enable_timing=True)
+for batch_idx, (inputs, targets) in enumerate(trainloader):
+    if batch_idx > args.iters:
+        break
+    inputs, targets = inputs.to(device), targets.to(device)
+    # f_start = torch.cuda.Event(enable_timing=True)
+    # f_end = torch.cuda.Event(enable_timing=True)
 
-        # forward pass
-        f_start.record()
-        optimizer.zero_grad()
-        outputs = net(inputs)
-        f_end.record()
-        torch.cuda.synchronize()
-        f_time = f_start.elapsed_time(f_end)
-        f_train += [f_time]
+    # forward pass
+    # f_start.record()
+    optimizer.zero_grad()
+    outputs = net(inputs)
+    # f_end.record()
+    # torch.cuda.synchronize()
+    # f_time = f_start.elapsed_time(f_end)
+    # f_train += [f_time]
 
-        b_start = torch.cuda.Event(enable_timing=True)
-        b_end   = torch.cuda.Event(enable_timing=True)
-        # backward pass
-        b_start.record()
-        loss = criterion(outputs, targets)
-        loss.backward()
-        optimizer.step()
-        b_end.record()
-        b_time = b_start.elapsed_time(b_end)
-        b_train += [b_time]
+    # b_start = torch.cuda.Event(enable_timing=True)
+    # b_end   = torch.cuda.Event(enable_timing=True)
+    # backward pass
+    # b_start.record()
+    loss = criterion(outputs, targets)
+    loss.backward()
+    optimizer.step()
+    # b_end.record()
+    # b_time = b_start.elapsed_time(b_end)
+    # b_train += [b_time]
 
 
-        torch.cuda.synchronize()
-        peak_memory_usage += [torch.cuda.reset_max_memory_allocated()]
+    # torch.cuda.synchronize()
+    # peak_memory_usage += [torch.cuda.max_memory_allocated()]
 
 
 print("Forward Time")
