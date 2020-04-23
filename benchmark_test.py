@@ -1,3 +1,6 @@
+''' STRICTLY FOR TEST/INFERENCE '''
+''' DONOT EVEN USE FOR PARTIAL COMPUTE '''
+
 '''Train CIFAR10 with PyTorch.'''
 import torch
 import torch.nn as nn
@@ -18,10 +21,14 @@ import statistics
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
-parser.add_argument('--arch', help="which architecture to use")
+parser.add_argument('--arch', help="which architecture to use", required=True)
 parser.add_argument('--iters', default=100, type=int, help='iters')
 parser.add_argument('--batch_size', default=64, type=int, help='iters')
 
+
+# CUDNN Enabled
+torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.enabled   = True
 
 args = parser.parse_args()
 
@@ -75,79 +82,45 @@ elif args.arch == "alexnet":
     raise NotImplementedError
 
 net = net.to(device)
-print(net)
-
-time.sleep(10)
-
+model_mem_usage = torch.cuda.memory_allocated()
 
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
     cudnn.benchmark = True
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
-
-
 # training time, forward and backward 
-f_train = []
-b_train = []
+f_test = []
 peak_memory_usage = []
 memory_usage = []
-net.train()
-# just to warmup the gpu
-#for batch_idx, (inputs, targets) in enumerate(trainloader):
-#    if batch_idx > args.iters:
-#        break
-#    inputs = inputs.to(device)
-#    net(inputs)
+input_memory_usage = []
+
+net.eval()
+with torch.no_grad():
+    for batch_idx, (inputs, targets) in enumerate(trainloader):
+        if batch_idx > args.iters:
+            break
+
+        inputs, targets = inputs.to(device), targets.to(device)
+        input_memory_usage =  [torch.cuda.memory_allocated()]
+
+        f_start = torch.cuda.Event(enable_timing=True)
+        f_end = torch.cuda.Event(enable_timing=True)
+
+        # forward pass
+        f_start.record()
+        outputs = net(inputs)
+        f_end.record()
+        torch.cuda.synchronize()
+        f_time = f_start.elapsed_time(f_end)
+        f_test += [f_time]
+        memory_usage += [torch.cuda.memory_allocated()]
+        peak_memory_usage += [torch.cuda.max_memory_allocated()]
 
 
-net.train()
-for batch_idx, (inputs, targets) in enumerate(trainloader):
-    if batch_idx > args.iters:
-        break
-    inputs, targets = inputs.to(device), targets.to(device)
-    f_start = torch.cuda.Event(enable_timing=True)
-    f_end = torch.cuda.Event(enable_timing=True)
 
-    # forward pass
-    f_start.record()
-    outputs = net(inputs)
-    f_end.record()
-    torch.cuda.synchronize()
-    f_time = f_start.elapsed_time(f_end)
-    f_train += [f_time]
+out = ("{},{},{},{},{},{},{}".format(args.arch, model_mem_usage, args.batch_size, statistics.mean(f_test), statistics.median(f_test), max(f_test), min(f_test))) 
+out += "," + "{},{},{},{}".format(statistics.mean(peak_memory_usage), statistics.median(memory_usage), statistics.median(input_memory_usage))
 
-    b_start = torch.cuda.Event(enable_timing=True)
-    b_end   = torch.cuda.Event(enable_timing=True)
-    # backward pass
-    b_start.record()
-    optimizer.zero_grad()
-    loss = criterion(outputs, targets)
-    loss.backward()
-    optimizer.step()
-    b_end.record()
-    torch.cuda.synchronize()
-    b_time = b_start.elapsed_time(b_end)
-    b_train += [b_time]
-
-    memory_usage += [torch.cuda.memory_allocated()]
-    peak_memory_usage += [torch.cuda.max_memory_allocated()]
-
-
-#print("Forward Time")
-#print(f_train)
-#print("{},{},{},{},{}".format(args.arch,statistics.mean(f_train), statistics.median(f_train),  max(f_train), min(f_train)))
-#print(b_train)
-#print("{},{},{},{},{}".format(args.arch,statistics.mean(b_train), statistics.median(b_train), max(b_train), min(b_train)))
-#print(peak_memory_usage)
-#print("{},{},{},{},{}".format(args.arch,statistics.mean(peak_memory_usage), statistics.median(peak_memory_usage), max(peak_memory_usage), min(peak_memory_usage)))
-
-
-out = ("{},{},{},{},{},{}".format(args.arch,args.batch_size,statistics.mean(f_train), statistics.median(f_train),  max(f_train), min(f_train))) 
-out += "," + ("{},{},{},{}".format(statistics.mean(b_train), statistics.median(b_train),  max(b_train), min(b_train)))
-out += "," + "{},{},{},{}".format(statistics.mean(peak_memory_usage), statistics.median(memory_usage), max(memory_usage), min(memory_usage))
-
-with open("out.txt", "a") as writer:
+with open("test_benchmark_fullmodel.txt", "a") as writer:
     writer.write(out+"\n")
  
