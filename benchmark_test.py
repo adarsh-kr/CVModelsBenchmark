@@ -119,7 +119,7 @@ with torch.no_grad():
 
 
 out = ("{},{},{},{},{},{},{}".format(args.arch, model_mem_usage, args.batch_size, statistics.mean(f_test), statistics.median(f_test), max(f_test), min(f_test))) 
-out += "," + "{},{},{},{}".format(statistics.mean(peak_memory_usage), statistics.median(memory_usage), statistics.median(input_memory_usage))
+out += "," + "{},{},{}".format(statistics.mean(peak_memory_usage), statistics.median(memory_usage), statistics.median(input_memory_usage))
 
 with open("test_benchmark_fullmodel.txt", "a") as writer:
     writer.write(out+"\n")
