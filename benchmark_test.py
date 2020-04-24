@@ -95,8 +95,7 @@ memory_usage = []
 input_memory_usage = []
 
 net.eval()
-#with torch.no_grad():
-if 1:
+with torch.no_grad():
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         if batch_idx > args.iters:
             break
