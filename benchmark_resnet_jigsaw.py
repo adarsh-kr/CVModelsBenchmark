@@ -103,6 +103,8 @@ for batch_idx, (inputs, targets) in enumerate(trainloader):
     f_time = f_start.elapsed_time(f_end)
     f_train += [f_time]
 
+    peak_memory_usage += [torch.cuda.max_memory_allocated()]
+    print(peak_memory_usage)
     b_start = torch.cuda.Event(enable_timing=True)
     b_end   = torch.cuda.Event(enable_timing=True)
     # backward pass
