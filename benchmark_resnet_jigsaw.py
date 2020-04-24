@@ -21,7 +21,7 @@ parser.add_argument('--resume', '-r', action='store_true', help='resume from che
 parser.add_argument('--arch', help="which architecture to use")
 parser.add_argument('--iters', default=100, type=int, help='iters')
 parser.add_argument('--batch_size', default=64, type=int, help='iters')
-parser.add_argumen('--n', default=0, type=int, help='first n not doing grad')
+parser.add_argument('--n', default=0, type=int, help='first n not doing grad')
 
 args = parser.parse_args()
 
