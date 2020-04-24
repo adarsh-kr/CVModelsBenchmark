@@ -102,19 +102,21 @@ for batch_idx, (inputs, targets) in enumerate(trainloader):
     torch.cuda.synchronize()
     f_time = f_start.elapsed_time(f_end)
     f_train += [f_time]
+    peak_memory_usage += [torch.cuda.max_memory_allocated()]
+    print(torch.cuda.max_memory_allocated())
 
-    b_start = torch.cuda.Event(enable_timing=True)
-    b_end   = torch.cuda.Event(enable_timing=True)
+#    b_start = torch.cuda.Event(enable_timing=True)
+#    b_end   = torch.cuda.Event(enable_timing=True)
     # backward pass
-    b_start.record()
-    optimizer.zero_grad()
-    loss = criterion(outputs, targets)
-    loss.backward()
-    optimizer.step()
-    b_end.record()
-    torch.cuda.synchronize()
-    b_time = b_start.elapsed_time(b_end)
-    b_train += [b_time]
+#    b_start.record()
+#    optimizer.zero_grad()
+#    loss = criterion(outputs, targets)
+#    loss.backward()
+#    optimizer.step()
+#    b_end.record()
+#    torch.cuda.synchronize()
+#    b_time = b_start.elapsed_time(b_end)
+#    b_train += [b_time]
 
     memory_usage += [torch.cuda.memory_allocated()]
     peak_memory_usage += [torch.cuda.max_memory_allocated()]
