@@ -87,7 +87,7 @@ for i in range(args.iters):
 
 
 
-out = ("{},{},{},{},{},{}".format(args.arch, statistics.mean(g2c), statistics.median(g2c),  max(g2c), min(g2c))) 
+out = ("{},{},{},{},{}".format(args.arch, statistics.mean(g2c), statistics.median(g2c),  max(g2c), min(g2c))) 
 out += "," + ("{},{},{},{}".format(statistics.mean(c2g), statistics.median(c2g),  max(c2g), min(c2g)))
 
 with open("benchmar_cpu2gpu.txt", "a") as writer:
