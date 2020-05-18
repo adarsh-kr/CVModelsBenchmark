@@ -177,7 +177,7 @@ def run(rank, size, args):
                 with torch.no_grad():
                     # gradient send for suffix network 
                     buckets = []
-                    bucket_size = len(list(model.named_parameters))/size
+                    bucket_size = len(list(model.named_parameters()))/size
                     for i in range(size):
                         buckets += [i*int(bucket_size)]
 
