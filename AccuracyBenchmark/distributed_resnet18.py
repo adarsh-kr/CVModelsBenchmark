@@ -13,6 +13,8 @@ from torch.multiprocessing import Process
 from torch.autograd import Variable
 from torchvision import datasets, transforms
 from resnet import *
+from tqdm import trange
+
 
 class Average(object):
 
@@ -162,7 +164,7 @@ def run(rank, size, args):
             
 
             if batch_idx%100==0:
-                print(epoch, batch_idx, loss)
+                print(rank, epoch, batch_idx, loss.item())
             
             train_acc.update(output, target)
             train_loss.update(loss.item(), data.size(0))
