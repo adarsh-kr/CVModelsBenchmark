@@ -12,8 +12,26 @@ from random import Random
 from torch.multiprocessing import Process
 from torch.autograd import Variable
 from torchvision import datasets, transforms
-from resnet import *
+from models import *
 from tqdm import trange
+
+def get_model(arch):
+    if arch == "resnet152":
+        net = ResNet152()
+    elif arch == "resnet18":
+        net = ResNet18()
+    elif arch == "resnet50":
+        net = ResNet50()    
+    elif arch == "resnet34":
+        net = ResNet34()
+    elif arch == "resnet101":
+        net = ResNet101()
+    elif arch  == "vgg16":
+        net = VGG('vgg16')
+    elif arch  == "vgg11":
+        net = VGG('vgg11')
+    elif arch  == "vgg19":
+        net = VGG('vgg19')
 
 
 class Average(object):
@@ -128,7 +146,8 @@ def run(rank, size, args):
     
     torch.manual_seed(1234)
     train_set, test_set, bsz = partition_CIFAR(args.batch_size)
-    model = ResNet18()
+    #  
+    model = get_model(args.arch)
     # for name, parameter in model.named_parameters():
     #     print(name, parameter.shape)
     # time.sleep(10)
@@ -183,15 +202,16 @@ def run(rank, size, args):
 
                     # add args.update_granularity: scheme is changed after every update_granularity iterations  
                     is_bucket = (rank + int(batch_idx/args.update_granularity))%size
-                    
+                    if rank == 0:
+                        print(is_bucket, buckets[is_bucket])
                     layer_segment = buckets[is_bucket]
-                    with torch.no_grad():
-                        for layer_idx, (name, param) in enumerate(model.named_parameters()):
-                            if  layer_segment <=layer_idx:
-                                pass 
-                            else:
-                                # drop the gradient
-                                param.grad.data = F.dropout(param.grad.data, 1.0)
+
+                    for layer_idx, (name, param) in enumerate(model.named_parameters()):
+                        if  layer_segment <=layer_idx:
+                            pass 
+                        else:
+                            # drop the gradient
+                            param.grad = F.dropout(param.grad, 1.0)
 
                     
             average_gradients(model)
