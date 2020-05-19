@@ -199,16 +199,17 @@ def run(rank, size, args):
         for batch_idx, (data, target) in enumerate(train_set):
             optimizer.zero_grad()
             if torch.cuda.is_available():
-                data = data.cuda()
-                target = target.cuda()
-
+                # data = data.cuda()
+                # target = target.cuda()
+                data = data.to(device)
+                target = target.to(device)
+            
             output = model(data)
 
             loss = F.cross_entropy(output, target)
             epoch_loss += loss.item()
             loss.backward()
             
-
             if batch_idx%100==0:
                 print("Rank:{}, Epoch:{}, Batch_Idx:{}, Loss:{}".format(rank, epoch, batch_idx, loss.item()))
             
@@ -238,8 +239,6 @@ def run(rank, size, args):
                             is_bucket = rank
                             rsz.shuffle(buckets)
                         
-                        # if rank == 0:
-                        #     print("bucket :", is_bucket, buckets)
                         layer_segment = buckets[is_bucket]
                         count = 0
                         for layer_idx, (name, param) in enumerate(model.named_parameters()):
@@ -249,8 +248,6 @@ def run(rank, size, args):
                             else:
                                 # drop the gradient
                                 param.grad = F.dropout(param.grad, 1.0)
-                        # if rank == 0:
-                        #     print(count)
                     
             average_gradients(model, args)
             optimizer.step()
@@ -259,8 +256,10 @@ def run(rank, size, args):
         test_loss = Average()
         for test_data, test_tgt in test_set:
             if torch.cuda.is_available():
-                test_data = test_data.cuda()
-                test_tgt = test_tgt.cuda()
+                # test_data = test_data.cuda()
+                # test_tgt = test_tgt.cuda()
+                test_data = test_data.to(device)
+                test_tgt = test_tgt.to(device)
             output = model(test_data)
             loss = F.nll_loss(output, test_tgt)
             test_loss.update(loss.item(), test_data.size(0))
