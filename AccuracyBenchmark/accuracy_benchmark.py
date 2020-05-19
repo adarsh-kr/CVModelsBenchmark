@@ -168,7 +168,6 @@ def average_gradients(model, args):
 def run(rank, size, args):
     device = torch.device('cuda:{}'.format(rank%torch.cuda.device_count()) if torch.cuda.is_available() else 'cpu')
     
-    
     torch.manual_seed(1234)
     train_set, test_set, bsz = partition_CIFAR(args.batch_size, args)
     #  
