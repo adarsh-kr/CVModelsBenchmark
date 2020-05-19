@@ -187,7 +187,7 @@ def run(rank, size, args):
     dropping_scheme_name = ["no_drop", "jgsaw"]
     create_dir(args.arch)
 
-    file = open("{}/scheme_{}_workers_{}_updateFreq_{}_totalBsz_{}_optim_{}_shard_{}_reduceOP_{}log".format(args.arch, args.dropping_scheme, size, args.update_granularity, args.batch_size, args.optim, args.shard_data, args.reduce_op), "w", buffering=1)
+    file = open("{}/scheme_{}_workers_{}_updateFreq_{}_totalBsz_{}_optim_{}_shard_{}_reduceOP_{}_start_epoch{}_cyclic_{}.log".format(args.arch, args.dropping_scheme, size, args.update_granularity, args.batch_size, args.optim, args.shard_data, args.reduce_op, args.start_epoch, args.cyclic), "w", buffering=1)
     file.write(",".join(["Rank", "Epoch", "TrainLoss", "TrainAcc", "TestLoss", "TestAcc"]) + "\n")
     
     for epoch in range(total_epochs):
