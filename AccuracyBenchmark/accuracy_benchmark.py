@@ -31,13 +31,21 @@ def get_model(arch):
     elif arch == "resnet101":
         net = ResNet101()
     elif arch  == "vgg16":
-        net = VGG('vgg16')
+        net = VGG('VGG16')
     elif arch  == "vgg11":
-        net = VGG('vgg11')
+        net = VGG('VGG11')
     elif arch  == "vgg19":
-        net = VGG('vgg19')
+        net = VGG('VGG19')
     elif arch == "googlenet":
         net = GoogLeNet()
+    elif arch == "dense121":
+        net = DenseNet121()
+    elif arch == "desne201":
+        net = DenseNet201()
+    elif arch == "lenet":
+        net = LeNet()
+    elif arch == "mobile":
+        net = MobileNet()
     else:
         raise NotImplementedError
     return net
