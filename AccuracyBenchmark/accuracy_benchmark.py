@@ -40,7 +40,7 @@ def get_model(arch):
         net = GoogLeNet()
     elif arch == "dense121":
         net = DenseNet121()
-    elif arch == "desne201":
+    elif arch == "dense201":
         net = DenseNet201()
     elif arch == "lenet":
         net = LeNet()
