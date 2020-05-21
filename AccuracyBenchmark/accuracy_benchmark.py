@@ -189,7 +189,7 @@ def run(rank, size, args):
                             momentum=args.momentum,
                             weight_decay=args.weight_decay)
 
-        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones=[100, 150])
+        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.decay_after_n*i for i in range(5)])
 
     elif args.optim == "adam":
         optimizer = optim.Adam(model.parameters(),
@@ -200,7 +200,7 @@ def run(rank, size, args):
     dropping_scheme_name = ["no_drop", "jgsaw"]
     create_dir(args.arch)
 
-    file = open("{}/scheme_{}_workers_{}_updateFreq_{}_totalBsz_{}_optim_{}_shard_{}_reduceOP_{}_start_epoch{}_cyclic_{}.log".format(args.arch, args.dropping_scheme, size, args.update_granularity, args.batch_size, args.optim, args.shard_data, args.reduce_op, args.start_epoch, args.cyclic), "w", buffering=1)
+    file = open("{}/scheme_{}_workers_{}_updateFreq_{}_totalBsz_{}_optim_{}_shard_{}_reduceOP_{}_start_epoch{}_cyclic_{}_epochs_{}_decay_{}_lr_{}_weight_{}.log".format(args.arch, args.dropping_scheme, size, args.update_granularity, args.batch_size, args.optim, args.shard_data, args.reduce_op, args.start_epoch, args.cyclic, args.epochs, args.decay_after_n, args.lr, args.weight_decay), "w", buffering=1)
     file.write(",".join(["Rank", "Epoch", "TrainLoss", "TrainAcc", "TestLoss", "TestAcc"]) + "\n")
     
     for epoch in range(total_epochs):
@@ -312,7 +312,8 @@ if __name__ == "__main__":
                     help='momentum')
     parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                     metavar='LR', help='initial learning rate')
-
+    parser.add_argument('--decay_after_n', type=int, default=30)
+    
     args = parser.parse_args()
     print(args)
     time.sleep(5)    
