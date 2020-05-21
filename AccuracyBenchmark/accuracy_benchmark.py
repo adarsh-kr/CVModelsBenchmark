@@ -170,7 +170,11 @@ def average_gradients(model, args):
             num_wrkrs_sending_update = idx/bucket_size  
             param.grad.data /= (num_wrkrs_sending_update+1)
 
-        
+def adjustLearningRate(optimizer, decay_factor):
+    for param_group in optimizer.param_groups:
+        prev = param_group['lr']
+        param_group['lr'] = param_group['lr']*decay_factor
+        print("Learning Rate Decayed {0} --> {1}".format(prev, param_group['lr']))        
 
 """ Distributed Synchronous SGD Example """
 def run(rank, size, args):
@@ -189,7 +193,7 @@ def run(rank, size, args):
                             momentum=args.momentum,
                             weight_decay=args.weight_decay)
 
-        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.decay_after_n*(i+1) for i in range(5)])
+        # lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.decay_after_n*(i+1) for i in range(5)])
 
     elif args.optim == "adam":
         optimizer = optim.Adam(model.parameters(),
@@ -203,7 +207,7 @@ def run(rank, size, args):
     file = open("{}/scheme_{}_workers_{}_updateFreq_{}_totalBsz_{}_optim_{}_shard_{}_reduceOP_{}_start_epoch{}_cyclic_{}_epochs_{}_decay_{}_lr_{}_weight_{}.log".format(args.arch, args.dropping_scheme, size, args.update_granularity, args.batch_size, args.optim, args.shard_data, args.reduce_op, args.start_epoch, args.cyclic, args.epochs, args.decay_after_n, args.lr, args.weight_decay), "w", buffering=1)
     file.write(",".join(["Rank", "Epoch", "TrainLoss", "TrainAcc", "TestLoss", "TestAcc"]) + "\n")
     
-    for epoch in range(total_epochs):
+    for epoch in range(1,total_epochs):
         model.train()
         train_acc = Accuracy()
         train_loss = Average()
@@ -264,9 +268,12 @@ def run(rank, size, args):
                     
             average_gradients(model, args)
             optimizer.step()
-        last_lr = lr_scheduler.get_lr()
-        lr_scheduler.step()
-        print("Epoch:{}, Updating lr from {} to {}".format(epoch, last_lr, lr_scheduler.get_lr()))
+        if epoch%args.decay_after_n == 0:
+            adjustLearningRate(optimizer, args.decay_factor)
+        
+        for i,param_group in enumerate(optimizer.param_groups()):
+            print("Updated optimizer param_group {}, lr {}".format(i,param_group['lr']))
+        
         model.eval()
         test_acc = Accuracy()
         test_loss = Average()
