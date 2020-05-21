@@ -323,6 +323,8 @@ if __name__ == "__main__":
     parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                     metavar='LR', help='initial learning rate')
     parser.add_argument('--decay_after_n', type=int, default=30)
+    parser.add_argument('--decay_factor', type=float, default=0.1)
+
     
     args = parser.parse_args()
     print(args)
