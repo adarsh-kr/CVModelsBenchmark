@@ -183,8 +183,14 @@ def run(rank, size, args):
     model.to(device)
     
     if args.optim == "sgd":
-        optimizer = optim.SGD(model.parameters(),
-                            lr=0.01, momentum=0.5)
+        # optimizer = optim.SGD(model.parameters(),
+        #                     lr=0.01, momentum=0.5)
+        optimizer = torch.optim.SGD(model.parameters(), args.lr,
+                            momentum=args.momentum,
+                            weight_decay=args.weight_decay)
+
+        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones=[100, 150])
+
     elif args.optim == "adam":
         optimizer = optim.Adam(model.parameters(),
                     lr=0.001)
@@ -300,6 +306,12 @@ if __name__ == "__main__":
     parser.add_argument('--reduce_op', type=str, default='avg', help="avg_w_count")
     parser.add_argument('--start_epoch', type=int, default=0, help="after this epoch any scheme starts")
     parser.add_argument('--cyclic', action='store_true')
+    parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
+                    metavar='W', help='weight decay (default: 1e-4)')
+    parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
+                    help='momentum')
+    parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
+                    metavar='LR', help='initial learning rate')
 
     args = parser.parse_args()
     print(args)
