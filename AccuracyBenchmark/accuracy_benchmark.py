@@ -189,7 +189,7 @@ def run(rank, size, args):
                             momentum=args.momentum,
                             weight_decay=args.weight_decay)
 
-        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.decay_after_n*i for i in range(5)])
+        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.decay_after_n*(i+1) for i in range(5)])
 
     elif args.optim == "adam":
         optimizer = optim.Adam(model.parameters(),
@@ -264,6 +264,9 @@ def run(rank, size, args):
                     
             average_gradients(model, args)
             optimizer.step()
+        last_lr = lr_scheduler.get_lr()
+        lr_scheduler.step()
+        print("Epoch:{}, Updating lr from {} to {}".format(epoch, last_lr, lr_scheduler.get_lr()))
         model.eval()
         test_acc = Accuracy()
         test_loss = Average()
