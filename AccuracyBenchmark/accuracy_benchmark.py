@@ -12,8 +12,7 @@ from random import Random
 from torch.multiprocessing import Process
 from torch.autograd import Variable
 from torchvision import datasets, transforms
-from ResNet18 import *
-#from models import *
+from models import *
 from tqdm import trange
 
 def create_dir(dir):
@@ -24,7 +23,7 @@ def get_model(arch):
     if arch == "resnet152":
         net = ResNet152()
     elif arch == "resnet18":
-        net = ResNet18(32,10)
+        net = ResNet18()
     elif arch == "resnet50":
         net = ResNet50()    
     elif arch == "resnet34":
@@ -190,7 +189,7 @@ def run(rank, size, args):
                             momentum=args.momentum,
                             weight_decay=args.weight_decay)
 
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.decay_after_n*i for i in range(5)])
+        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[args.decay_after_n*(i+1) for i in range(5)])
 
     elif args.optim == "adam":
         optimizer = optim.Adam(model.parameters(),
@@ -265,9 +264,9 @@ def run(rank, size, args):
                     
             average_gradients(model, args)
             optimizer.step()
-        last_lr = scheduler.get_lr()
-        scheduler.step()
-        print("Epoch:{}, Updating Learning Rate from {} to {}".format(epoch, last_lr, scheduler.get_lr()))
+        last_lr = lr_scheduler.get_lr()
+        lr_scheduler.step()
+        print("Epoch:{}, Updating lr from {} to {}".format(epoch, last_lr, lr_scheduler.get_lr()))
         model.eval()
         test_acc = Accuracy()
         test_loss = Average()
