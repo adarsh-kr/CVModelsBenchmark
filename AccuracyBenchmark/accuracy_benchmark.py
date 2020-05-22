@@ -271,7 +271,7 @@ def run(rank, size, args):
         if epoch%args.decay_after_n == 0:
             adjustLearningRate(optimizer, args.decay_factor)
         
-        for i,param_group in enumerate(optimizer.param_groups()):
+        for i,param_group in enumerate(optimizer.param_groups):
             print("Updated optimizer param_group {}, lr {}".format(i,param_group['lr']))
         
         model.eval()
