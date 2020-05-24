@@ -265,6 +265,7 @@ def run(rank, size, args):
                             else:
                                 # drop the gradient
                                 param.grad = F.dropout(param.grad, 1.0)
+                        print("batch_idx{} rank{} count{}".format(batch_idx, rank, count))
                     
             average_gradients(model, args)
             optimizer.step()
