@@ -102,7 +102,7 @@ net.train()
 #    inputs = inputs.to(device)
 #    net(inputs)
 
-totalGradients=[0 for i in range(args.iters)]
+totalGradients=[0 for i in range(args.iters+1)]
 
 net.train()
 for batch_idx, (inputs, targets) in enumerate(trainloader):
@@ -129,7 +129,7 @@ for batch_idx, (inputs, targets) in enumerate(trainloader):
     loss = criterion(outputs, targets)
     loss.backward()
     for name, param in net.named_parameters():
-        totalGradients[batch_idx]+=torch.nume(param.grad)
+        totalGradients[batch_idx]+=torch.numel(param.grad)
     optimizer.step()
     b_end.record()
     torch.cuda.synchronize()
