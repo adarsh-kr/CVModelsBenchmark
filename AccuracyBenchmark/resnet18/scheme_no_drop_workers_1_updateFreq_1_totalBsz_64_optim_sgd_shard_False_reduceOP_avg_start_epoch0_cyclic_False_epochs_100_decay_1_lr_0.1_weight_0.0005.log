@@ -1,0 +1,2 @@
+Rank,Epoch,TrainLoss,TrainAcc,TestLoss,TestAcc
+0,1,1.8082795330047607,0.3547,-2.1471409324645996,0.4398
